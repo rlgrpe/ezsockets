@@ -382,6 +382,22 @@ impl<E: ClientExt> Client<E> {
         self.client_call_sender.send_blocking(message)
     }
 
+    pub fn ping(&self, bytes: Vec<u8>) -> Result<MessageSignal, async_channel::SendError<InMessage>> {
+        let inmessage = InMessage::new(Message::Ping(bytes));
+        let inmessage_signal = inmessage.clone_signal().unwrap(); //safety: always available on construction
+        self.to_socket_sender
+            .send_blocking(inmessage)
+            .map(|_| inmessage_signal)
+    }
+
+    pub fn pong(&self, bytes: Vec<u8>) -> Result<MessageSignal, async_channel::SendError<InMessage>> {
+        let inmessage = InMessage::new(Message::Pong(bytes));
+        let inmessage_signal = inmessage.clone_signal().unwrap(); //safety: always available on construction
+        self.to_socket_sender
+            .send_blocking(inmessage)
+            .map(|_| inmessage_signal)
+    }
+
     /// Call a custom method on the Client, with a reply from the `ClientExt::on_call`.
     ///
     /// This works just as syntactic sugar for `Client::call(sender)`
