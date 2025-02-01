@@ -27,6 +27,11 @@
 //!         let () = call;
 //!         Ok(())
 //!     }
+//!
+//!     async fn on_ping(&mut self, bytes: Vec<u8>) -> Result<(), Error> {
+//!         tracing::info!("received ping: {bytes:?}");
+//!         Ok(())
+//!     }
 //! }
 //!
 //! #[tokio::main]
@@ -249,6 +254,10 @@ pub trait ClientExt: Send {
     ///
     /// This is useful for concurrency and polymorphism.
     async fn on_call(&mut self, call: Self::Call) -> Result<(), Error>;
+    /// Handler for ping frames from the server.
+    ///
+    /// Returning an error will force-close the client.
+    async fn on_ping(&mut self, bytes: Vec<u8>) -> Result<(), Error>;
 
     /// Called when the client successfully connected (or reconnected).
     ///
@@ -560,6 +569,7 @@ impl<E: ClientExt, C: ClientConnector> ClientActor<E, C> {
                 match message.to_owned() {
                     Message::Text(text) => self.client.on_text(text).await?,
                     Message::Binary(bytes) => self.client.on_binary(bytes).await?,
+                    Message::Ping(ping) => self.client.on_ping(ping).await?,
                     Message::Close(frame) => {
                         tracing::debug!("client closed by server");
                         return self.handle_close(frame, socket).await;

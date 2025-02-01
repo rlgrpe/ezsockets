@@ -27,6 +27,8 @@ pub trait SessionExt: Send {
     /// Handler for custom calls from other parts from your program. Returning an error will force-close the session.
     /// This is useful for concurrency and polymorphism.
     async fn on_call(&mut self, call: Self::Call) -> Result<(), Error>;
+    /// Handler for ping frames from the client. Returning an error will force-close the session.
+    async fn on_ping(&mut self, bytes: Vec<u8>) -> Result<(), Error>;
 }
 
 type CloseReceiver = oneshot::Receiver<Result<Option<CloseFrame>, Error>>;
@@ -222,6 +224,7 @@ impl<E: SessionExt> SessionActor<E> {
                         Some(Ok(message)) => match message {
                             Message::Text(text) => self.extension.on_text(text).await?,
                             Message::Binary(bytes) => self.extension.on_binary(bytes).await?,
+                            Message::Ping(ping) => self.extension.on_ping(ping).await?,
                             Message::Close(frame) => {
                                 // closed by client
                                 return Ok(frame.map(CloseFrame::from))
