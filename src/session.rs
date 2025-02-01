@@ -225,6 +225,7 @@ impl<E: SessionExt> SessionActor<E> {
                             Message::Text(text) => self.extension.on_text(text).await?,
                             Message::Binary(bytes) => self.extension.on_binary(bytes).await?,
                             Message::Ping(ping) => self.extension.on_ping(ping).await?,
+                            Message::Pong(pong) => self.socket.send(InMessage::new(Message::Pong(pong))).await?,
                             Message::Close(frame) => {
                                 // closed by client
                                 return Ok(frame.map(CloseFrame::from))

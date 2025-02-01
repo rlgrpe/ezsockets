@@ -570,6 +570,7 @@ impl<E: ClientExt, C: ClientConnector> ClientActor<E, C> {
                     Message::Text(text) => self.client.on_text(text).await?,
                     Message::Binary(bytes) => self.client.on_binary(bytes).await?,
                     Message::Ping(ping) => self.client.on_ping(ping).await?,
+                    Message::Pong(pong) => socket.send(InMessage::new(Message::Pong(pong))).await?,
                     Message::Close(frame) => {
                         tracing::debug!("client closed by server");
                         return self.handle_close(frame, socket).await;

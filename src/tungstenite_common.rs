@@ -103,6 +103,7 @@ impl From<Message> for tungstenite::Message {
             Message::Text(text) => tungstenite::Message::Text(text),
             Message::Binary(bytes) => tungstenite::Message::Binary(bytes),
             Message::Ping(ping) => tungstenite::Message::Ping(ping),
+            Message::Pong(pong) => tungstenite::Message::Pong(pong),
             Message::Close(frame) => tungstenite::Message::Close(frame.map(CloseFrame::into)),
         }
     }
